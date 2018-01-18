@@ -654,7 +654,7 @@ struct BJT : Component<3, 4>
     bool newton(MNASystem & m)
     {
         return newtonJunctionPN(pnC, m.b[nets[3]].lu)
-            && newtonJunctionPN(pnE, m.b[nets[4]].lu);
+             & newtonJunctionPN(pnE, m.b[nets[4]].lu);
     }
 
     void stamp(MNASystem & m)
@@ -910,12 +910,12 @@ protected:
     // return true if we're done
     bool newton()
     {
-        bool needIter = 0;
+        bool done = 1;
         for(int i = 0; i < components.size(); ++i)
         {
-            needIter |= !components[i]->newton(system);
+            done &= components[i]->newton(system);
         }
-        return !needIter;
+        return done;
     }
 
     void initLU(double stepScale)

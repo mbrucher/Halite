@@ -529,7 +529,7 @@ struct Diode : Component<2, 2>
 
     bool newton(MNASystem & m)
     {
-        return newtonJunctionPN(pn, m.b[nets[3]].lu);
+        return newtonJunctionPN(pn, m.b[nets[2]].lu);
     }
 
     void stamp(MNASystem & m)

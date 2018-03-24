@@ -179,7 +179,7 @@ struct IComponent
 
     // return a pointer to array of pin locations
     // NOTE: these will eventually be GUI locations to be unified
-    virtual int * getPinLocs() = 0;
+    virtual const int* getPinLocs() const = 0;
 
     // setup pins and calculate the size of the full netlist
     // the Component<> will handle this automatically
@@ -187,7 +187,7 @@ struct IComponent
     //  - netSize is the current size of the netlist
     //  - pins is an array of circuits nodes
     //
-    virtual void setupNets(int & netSize, int & states, int * pins) = 0;
+    virtual void setupNets(int & netSize, int & states, const int* pins) = 0;
 
     // stamp constants into the matrix
     virtual void stamp(MNASystem & m) = 0;
@@ -218,9 +218,9 @@ struct Component : IComponent
 
     int pinCount() final { return nPins; }
 
-    int * getPinLocs() final { return pinLoc; }
+    const int* getPinLocs() const final { return pinLoc; }
 
-    void setupNets(int & netSize, int & states, int * pins) final
+    void setupNets(int & netSize, int & states, const int* pins) final
     {
         for(int i = 0; i < nPins; ++i)
         {

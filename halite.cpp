@@ -216,11 +216,11 @@ struct Component : IComponent
     int pinLoc[nPins];
     int nets[nNets];
 
-    int pinCount() { return nPins; }
+    int pinCount() final { return nPins; }
 
-    int * getPinLocs() { return pinLoc; }
+    int * getPinLocs() final { return pinLoc; }
 
-    void setupNets(int & netSize, int & states, int * pins)
+    void setupNets(int & netSize, int & states, int * pins) final
     {
         for(int i = 0; i < nPins; ++i)
         {
@@ -246,7 +246,7 @@ struct Resistor : Component<2>
         pinLoc[1] = l1;
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         char txt[16];
         txt[0] = 'R';
@@ -274,7 +274,7 @@ struct Capacitor : Component<2, 1>
         voltage = 0;
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         char buf[16];
         formatUnitValue(buf, c, "F");
@@ -331,7 +331,7 @@ struct Capacitor : Component<2, 1>
         m.nodes[nets[2]].scale = 1 / c;
     }
 
-    void update(MNASystem & m)
+    void update(MNASystem & m) final
     {
         stateVar = m.b[nets[2]].lu;
 
@@ -343,7 +343,7 @@ struct Capacitor : Component<2, 1>
         m.b[nets[2]].lu = c*voltage;
     }
 
-    void scaleTime(double told_per_new)
+    void scaleTime(double told_per_new) final
     {
         // the state is 2*c*voltage - i/t0
         // so we subtract out the voltage, scale current
@@ -367,7 +367,7 @@ struct Voltage : Component<2, 1>
         pinLoc[1] = l1;
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         m.stampStatic(-1, nets[0], nets[2], "-1");
         m.stampStatic(+1, nets[1], nets[2], "+1");
@@ -396,7 +396,7 @@ struct Probe : Component<2, 1>
         pinLoc[1] = l1;
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         // vp + vn - vd = 0
         m.stampStatic(+1, nets[2], nets[0], "+1");
@@ -406,10 +406,10 @@ struct Probe : Component<2, 1>
         m.nodes[nets[2]].name = "v:probe";
     }
 
-    void update(MNASystem & m)
-    {
+    //void update(MNASystem & m)
+    //{
         // we could do output here :)
-    }
+    //}
 };
 
 // function voltage generator
@@ -428,7 +428,7 @@ struct Function : Component<2,1>
         v = fn(0);
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         // this is identical to voltage source
         // except voltage is dynanic
@@ -448,7 +448,7 @@ struct Function : Component<2,1>
         m.nodes[nets[2]].type = MNANodeInfo::tCurrent;
     }
 
-    void update(MNASystem & m)
+    void update(MNASystem & m) final
     {
         v = fn(m.time);
     }
@@ -531,12 +531,12 @@ struct Diode : Component<2, 2>
         linearizeJunctionPN(pn, 0);
     }
 
-    bool newton(MNASystem & m)
+    bool newton(MNASystem & m) final
     {
         return newtonJunctionPN(pn, m.b[nets[2]].lu);
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         // Diode could be built with 3 extra nodes:
         //
@@ -655,13 +655,13 @@ struct BJT : Component<3, 4>
         linearizeJunctionPN(pnC, 0);
     }
 
-    bool newton(MNASystem & m)
+    bool newton(MNASystem & m) final
     {
         return newtonJunctionPN(pnC, m.b[nets[3]].lu)
              & newtonJunctionPN(pnE, m.b[nets[4]].lu);
     }
 
-    void stamp(MNASystem & m)
+    void stamp(MNASystem & m) final
     {
         // The basic idea here is the same as with diodes
         // except we do it once for each junction.

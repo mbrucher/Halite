@@ -1,21 +1,45 @@
+
 #include <vector>
 #include <string>
 #include <cstdio>
 #include <cmath>
 
-// set to 1 to make LU factorization show pivots
-#define VERBOSE_LU 0
-
+namespace
+{
 // gMin for diodes etc..
-static const double gMin = 1e-12;
+constexpr double gMin = 1e-12;
 
 // voltage tolerance
-static const double vTolerance = 5e-5;
+constexpr double vTolerance = 5e-5;
 
 // thermal voltage for diodes/transistors
-static const double vThermal = 0.026;
+constexpr double vThermal = 0.026;
 
-static const unsigned maxIter = 200;
+constexpr unsigned maxIter = 200;
+
+constexpr bool VERBOSE_LU = false;
+  
+constexpr int unitValueOffset = 4;
+constexpr int unitValueMax = 8;
+constexpr const char* unitValueSuffixes[] = {
+    "p", "n", "u", "m", "", "k", "M", "G"
+};
+  
+void formatUnitValue(char * buf, double v, const char * unit)
+{
+    int suff = unitValueOffset + std::lround(std::floor(std::log(v) / std::log(10.))) / 3;
+    
+    if(v < 1) suff -= 1;
+    
+    if(suff < 0) suff = 0;
+    if(suff > unitValueMax) suff = unitValueMax;
+    
+    double vr = v / std::pow(10., 3*double(suff - unitValueOffset));
+    
+    sprintf(buf, "%.0f%s%s", vr, unitValueSuffixes[suff], unit);
+}
+
+}
 
 //
 // General overview
@@ -66,7 +90,7 @@ struct MNACell
         lu = prelu;
         for(int i = 0; i < gdyn.size(); ++i)
         {
-            lu += 0[gdyn[i]];
+            lu += *(gdyn[i]);
         }
     }
 };
@@ -211,26 +235,6 @@ struct Component : IComponent
         setupStates(states);
     }
 };
-
-static const int unitValueOffset = 4;
-static const int unitValueMax = 8;
-static const char * unitValueSuffixes[unitValueMax+1] = {
-    "p", "n", "u", "m", "", "k", "M", "G"
-};
-
-static void formatUnitValue(char * buf, double v, const char * unit)
-{
-    int suff = unitValueOffset + int(log(v) / log(10.)) / 3;
-
-    if(v < 1) suff -= 1;
-
-    if(suff < 0) suff = 0;
-    if(suff > unitValueMax) suff = unitValueMax;
-
-    double vr = v / pow(10., 3*double(suff - unitValueOffset));
-
-    sprintf(buf, "%.0f%s%s", vr, unitValueSuffixes[suff], unit);
-}
 
 struct Resistor : Component<2>
 {
@@ -981,10 +985,11 @@ protected:
                     std::swap(system.A[p], system.A[pr]);
                     std::swap(system.b[p], system.b[pr]);
                 }
-                #if VERBOSE_LU
-                printf("pivot %d (from %d): %+.2e\n",
-                p, pr, system.A[p][p].lu);
-                #endif
+                if(VERBOSE_LU)
+                {
+                  printf("pivot %d (from %d): %+.2e\n",
+                         p, pr, system.A[p][p].lu);
+                }
             }
             if(0 == system.A[p][p].lu)
             {
